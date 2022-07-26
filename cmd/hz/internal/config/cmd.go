@@ -27,6 +27,7 @@ import (
 	"github.com/cloudwego/hertz/cmd/hz/internal/meta"
 	"github.com/cloudwego/hertz/cmd/hz/internal/util"
 	"github.com/cloudwego/hertz/cmd/hz/internal/util/logs"
+	"github.com/cloudwego/hertz/cmd/hz/pkg/argument"
 )
 
 func lookupTool(idlType string) (string, error) {
@@ -38,37 +39,20 @@ func lookupTool(idlType string) (string, error) {
 	path, err := exec.LookPath(tool)
 	logs.Debugf("[DEBUG]path:%v", path)
 	if err != nil {
-		goPath, err := util.GetGOPATH()
+		logs.Warnf("Failed to find %q from $PATH: %s. Try $GOPATH/bin/%s instead\n", path, err.Error(), tool)
+		p, err := exec.LookPath(tool)
 		if err != nil {
-			return "", fmt.Errorf("get 'GOPATH' failed for find %s : %v", tool, path)
+			return "", fmt.Errorf("failed to find %q from $PATH or $GOPATH/bin: %s", tool, err)
 		}
-		path = filepath.Join(goPath, "bin", tool)
+		path = filepath.Join(p, "bin", tool)
 	}
 
 	isExist, err := util.PathExist(path)
 	if err != nil {
-		return "", fmt.Errorf("check '%s' path error: %v", path, err)
 	}
 
 	if !isExist {
-		if tool == meta.TpCompilerThrift {
-			// If thriftgo does not exist, the latest version will be installed automatically.
-			err := util.InstallAndCheckThriftgo()
-			if err != nil {
-				return "", fmt.Errorf("can't install '%s' automatically, please install it manually for https://github.com/cloudwego/thriftgo, err : %v", tool, err)
-			}
-		} else {
-			// todo: protoc automatic installation
-			return "", fmt.Errorf("%s is not installed, please install it first", tool)
-		}
-	}
-
-	if tool == meta.TpCompilerThrift {
-		// If thriftgo exists, the version is detected; if the version is lower than v0.2.0 then the latest version of thriftgo is automatically installed.
-		err := util.CheckAndUpdateThriftgo()
-		if err != nil {
-			return "", fmt.Errorf("update thriftgo version failed, please install it manually for https://github.com/cloudwego/thriftgo, err: %v", err)
-		}
+		return "", fmt.Errorf("%s is not installed, please install it first", tool)
 	}
 
 	exe, err := os.Executable()
@@ -130,7 +114,7 @@ func link(src, dst string) error {
 	return nil
 }
 
-func BuildPluginCmd(args *Argument) (*exec.Cmd, error) {
+func BuildPluginCmd(args *argument.Argument) (*exec.Cmd, error) {
 	argPacks, err := args.Pack()
 	if err != nil {
 		return nil, err
@@ -191,15 +175,13 @@ func BuildPluginCmd(args *Argument) (*exec.Cmd, error) {
 	return cmd, nil
 }
 
-func (arg *Argument) GetThriftgoOptions() (string, error) {
-	prefix, err := arg.ModelPackagePrefix()
-	if err != nil {
-		return "", err
+func IdlTypeToCompiler(idlType string) (string, error) {
+	switch idlType {
+	case meta.IdlProto:
+		return meta.TpCompilerProto, nil
+	case meta.IdlThrift:
+		return meta.TpCompilerThrift, nil
+	default:
+		return "", fmt.Errorf("IDL type %s is not supported", idlType)
 	}
-	arg.ThriftOptions = append(arg.ThriftOptions, "package_prefix="+prefix)
-	if arg.JSONEnumStr {
-		arg.ThriftOptions = append(arg.ThriftOptions, "json_enum_as_text")
-	}
-	gas := "go:" + strings.Join(arg.ThriftOptions, ",") + ",reserve_comments,gen_json_tag=false"
-	return gas, nil
 }
