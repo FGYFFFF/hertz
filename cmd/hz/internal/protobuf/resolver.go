@@ -72,12 +72,14 @@ func getReferPkgMap(pkgMap map[string]string, incs []*descriptorpb.FileDescripto
 		pkg := getGoPackage(inc, pkgMap)
 		path := inc.GetName()
 		base := util.BaseName(path, ".proto")
-		// space := inc.GetPackage()
 		fileName := inc.GetName()
+		pkgName := util.BaseName(pkg, "")
+		pkgName = util.GetUniqueName(pkgName, true)
+
 		out[fileName] = &PackageReference{base, path, &model.Model{
 			FilePath:    path,
 			Package:     pkg,
-			PackageName: util.BaseName(pkg, ""),
+			PackageName: pkgName,
 		}, inc, false}
 	}
 

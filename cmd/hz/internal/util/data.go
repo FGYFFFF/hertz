@@ -24,6 +24,8 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+
+	"github.com/cloudwego/hertz/cmd/hz/internal/util/logs"
 )
 
 func CopyStringSlice(from, to *[]string) {
@@ -361,4 +363,38 @@ func SubDir(root, subPkg string) string {
 		return ImportToPath(subPkg, "")
 	}
 	return filepath.Join(root, ImportToPath(subPkg, ""))
+}
+
+var (
+	uniquePackageName    = map[string]bool{}
+	uniqueMiddlewareName = map[string]bool{}
+)
+
+// GetUniqueName can get a non-repeating variable name
+func GetUniqueName(name string, isPkgName bool) string {
+	uniqueNameSet := uniqueMiddlewareName
+	if isPkgName {
+		uniqueNameSet = uniquePackageName
+	}
+	uniqueName := name
+	if _, exist := uniqueNameSet[uniqueName]; exist {
+		for i := 0; i < 10000; i++ {
+			uniqueName = uniqueName + fmt.Sprintf("%d", i)
+			if _, exist := uniqueNameSet[uniqueName]; !exist {
+				logs.Infof("There is a package name with the same name, change %s to %s", name, uniqueName)
+				break
+			}
+			uniqueName = name
+			if i == 9999 {
+				if isPkgName {
+					panic(fmt.Sprintf("can not generate unique name for package %s, because the sequence number has exceed 9999.", name))
+				} else {
+					panic(fmt.Sprintf("can not generate routing group for package %s, because the sequence number has exceed 9999.", name))
+				}
+			}
+		}
+	}
+	uniqueNameSet[uniqueName] = true
+
+	return uniqueName
 }

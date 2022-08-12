@@ -60,10 +60,13 @@ func getReferPkgMap(pkgMap map[string]string, incs []*parser.Include) map[string
 		pkg := getGoPackage(inc.Reference, pkgMap)
 		impt := inc.GetPath()
 		base := util.BaseNameAndTrim(impt)
+		pkgName := util.SplitPackageName(pkg, "")
+		pkgName = util.GetUniqueName(pkgName, true)
+
 		out[base] = &PackageReference{base, impt, &model.Model{
 			FilePath:    inc.Path,
 			Package:     pkg,
-			PackageName: util.SplitPackageName(pkg, ""),
+			PackageName: pkgName,
 		}, inc.Reference, false}
 	}
 
