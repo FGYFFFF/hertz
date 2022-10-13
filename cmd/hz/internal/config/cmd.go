@@ -185,6 +185,24 @@ func BuildPluginCmd(args *Argument) (*exec.Cmd, error) {
 			"--hertz_out="+args.OutDir,
 			"--hertz_opt="+kas,
 		)
+		if args.Validator {
+			model_dir := args.ModelDir
+			if len(model_dir) == 0 {
+				model_dir = meta.ModelDir
+			}
+			out_dir := args.OutDir
+			if len(out_dir) == 0 {
+				out_dir = "."
+			}
+			cmd.Args = append(cmd.Args,
+				fmt.Sprintf("--validator_out=%s", out_dir),
+				fmt.Sprintf("--validator_opt=hz=true"),
+				fmt.Sprintf("--validator_opt=OutDir=%s", args.OutDir),
+				fmt.Sprintf("--validator_opt=ModelDir=%s", model_dir),
+				fmt.Sprintf("--validator_opt=GoMod=%s", args.Gomod),
+				fmt.Sprintf("--validator_opt=recurse=true"),
+			)
+		}
 		for _, kv := range args.ProtocOptions {
 			cmd.Args = append(cmd.Args, "--"+kv)
 		}

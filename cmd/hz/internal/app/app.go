@@ -98,6 +98,7 @@ func Init() *cli.App {
 	thriftOptionsFlag := cli.StringSliceFlag{Name: "thriftgo", Aliases: []string{"t"}, Usage: "Specify arguments for the thriftgo. ({flag}={value})"}
 	protoOptionsFlag := cli.StringSliceFlag{Name: "protoc", Aliases: []string{"p"}, Usage: "Specify arguments for the protoc. ({flag}={value})"}
 	noRecurseFlag := cli.BoolFlag{Name: "no_recurse", Usage: "Generate master model only.", Destination: &globalArgs.NoRecurse}
+	validatorFlag := cli.BoolFlag{Name: "validator", Usage: "Generate validator for struct", Destination: &globalArgs.Validator}
 
 	jsonEnumStrFlag := cli.BoolFlag{Name: "json_enumstr", Usage: "Use string instead of num for json enums when idl is thrift.", Destination: &globalArgs.JSONEnumStr}
 	unsetOmitemptyFlag := cli.BoolFlag{Name: "unset_omitempty", Usage: "Remove 'omitempty' tag for generated struct.", Destination: &globalArgs.UnsetOmitempty}
@@ -135,6 +136,7 @@ func Init() *cli.App {
 				&protoOptionsFlag,
 				&optPkgFlag,
 				&noRecurseFlag,
+				&validatorFlag,
 
 				&jsonEnumStrFlag,
 				&unsetOmitemptyFlag,
@@ -160,6 +162,7 @@ func Init() *cli.App {
 				&protoOptionsFlag,
 				&optPkgFlag,
 				&noRecurseFlag,
+				&validatorFlag,
 
 				&jsonEnumStrFlag,
 				&unsetOmitemptyFlag,
