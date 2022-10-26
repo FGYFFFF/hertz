@@ -112,6 +112,8 @@ func (pkgGen *HttpPackageGenerator) updateHandler(handler interface{}, handlerTp
 	}
 
 	hertzImport := regexp.MustCompile(`import \(\n`)
+	// unify line separator
+	file = bytes.ReplaceAll(file, []byte("\r\n"), []byte("\n"))
 	// insert new imports
 	for alias, model := range handler.(Handler).Imports {
 		if bytes.Contains(file, []byte(model.Package)) {

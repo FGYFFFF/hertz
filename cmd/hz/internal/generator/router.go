@@ -230,7 +230,8 @@ func (pkgGen *HttpPackageGenerator) updateRegister(pkg, rDir, pkgName string) er
 	if err != nil {
 		return fmt.Errorf("read register '%s' failed, err: %v", registerPath, err.Error())
 	}
-
+	// unify line separator
+	file = bytes.ReplaceAll(file, []byte("\r\n"), []byte("\n"))
 	insertImport := register.PkgAlias + " " + "\"" + register.Pkg + "\"\n"
 	if !bytes.Contains(file, []byte(register.Pkg)) {
 
@@ -312,7 +313,6 @@ func (pkgGen *HttpPackageGenerator) updateMiddlewareReg(router interface{}, midd
 	if err != nil {
 		return err
 	}
-
 	for _, mw := range middlewareList {
 		if bytes.Contains(file, []byte(mw+"Mw")) {
 			continue
